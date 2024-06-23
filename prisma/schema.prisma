@@ -9,12 +9,9 @@ datasource db {
 }
 
 model ConsentForm {
-  id                          String                @id @default(uuid())
-  name                        String
+  id                          String                 @id @default(uuid())
   institution                 String
-  otherInstitution            String?
   researchType                String
-  language                    String
   title                       String
   purpose                     String
   goal                        String
@@ -25,9 +22,8 @@ model ConsentForm {
   participants                Int
   studyOptions                StudyOptions[]
   compensation                Compensation
-  procedureSteps              ProcedureStep[]
+  procedureSteps              String[]
   collectedData               CollectedData[]
-  dateOfDataEnd               Int
   anonymization               Anonymization
   publication                 Publication
   principalInvestigator       String
@@ -37,36 +33,34 @@ model ConsentForm {
   funding                     String?
   ethicalCommittee            String?
   participantResponses        ParticipantResponse[]
+  signingMethod               SigningMethod
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
 }
 
-model ProcedureStep {
-  id             String       @id @default(uuid())
-  step           String
-  consentFormId  String
-  consentForm    ConsentForm @relation(fields: [consentFormId], references: [id], onDelete: Cascade)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-}
+
 
 model ParticipantResponse {
   id               String                @id @default(uuid())
   consentFormId    String
   consentForm      ConsentForm           @relation(fields: [consentFormId], references: [id])
   participantEmail String
-  responseData     Json
   consentState     ConsentState
+  firstName        String?
+  lastName         String?
+  signature        File?
   createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
 }
 
 enum ConsentState {
-  NOT_VIEWED
-  VIEWED
+  NOT_GRANTED
   GRANTED
 }
 
 enum StudyOptions {
   REPEATED_PARTICIPATION_ALLOWED
-  UNCOMFORTABLE_QUESTIONS
+  SURVEY_QUESTIONS
 }
 
 enum Compensation {
@@ -104,4 +98,18 @@ enum Anonymization {
 enum Publication {
   FULL_DATASET
   AGGREGATED_RESULTS
+}
+
+enum SigningMethod {
+  CHECK_BOX
+  SIGNATURE
+}
+
+model File {
+  id                      Int                 @id @default(autoincrement())
+  content                 Bytes
+  participantResponseId   String @unique
+  participantResponse     ParticipantResponse @relation(fields: [participantResponseId], references: [id], onDelete: Cascade)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
 }
