@@ -1,3 +1,5 @@
+import NextImage from 'next/image';
+
 export function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -20,22 +22,21 @@ export function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export function SettingsIcon(props: React.SVGProps<SVGSVGElement>) {
+export function ConsentFormIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
-      {...props}
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
       fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
       stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      className="size-6"
     >
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-      <circle cx="12" cy="12" r="3" />
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+      />
     </svg>
   );
 }
@@ -89,22 +90,12 @@ export function Spinner() {
 
 export function Logo() {
   return (
-    <svg
+    <NextImage
+      src="/logo.png"
+      alt="iConsent Logo"
       width="32"
       height="32"
-      viewBox="0 0 32 32"
-      fill="none"
-      className="text-gray-100"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect width="100%" height="100%" rx="16" fill="currentColor" />
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
-        fill="black"
-      />
-    </svg>
+    ></NextImage>
   );
 }
 

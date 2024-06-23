@@ -3,6 +3,8 @@ import 'server-only';
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { pgTable, serial, varchar } from 'drizzle-orm/pg-core';
+console.log('process.env.POSTGRES_URL');
+console.log(process.env.POSTGRES_URL);
 import { eq, ilike } from 'drizzle-orm';
 
 export const db = drizzle(
