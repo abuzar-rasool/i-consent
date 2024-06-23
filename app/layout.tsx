@@ -53,7 +53,7 @@ export default function RootLayout({
                 href="/"
               >
                 <Logo />
-                <span className="">ACME</span>
+                <span className="">iConsent</span>
               </Link>
               <User />
             </header>

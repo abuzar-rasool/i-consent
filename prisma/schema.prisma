@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model ConsentForm {
+  id                          String                @id @default(uuid())
+  name                        String
+  institution                 String
+  otherInstitution            String?
+  researchType                String
+  language                    String
+  title                       String
+  purpose                     String
+  goal                        String
+  startDate                   DateTime
+  endDate                     DateTime
+  duration                    Int
+  durationUnit                String
+  participants                Int
+  studyOptions                StudyOptions[]
+  compensation                Compensation
+  procedureSteps              ProcedureStep[]
+  collectedData               CollectedData[]
+  dateOfDataEnd               Int
+  anonymization               Anonymization
+  publication                 Publication
+  principalInvestigator       String
+  principalInvestigatorEmail  String
+  researcherNames             String?
+  researcherEmails            String?
+  funding                     String?
+  ethicalCommittee            String?
+  participantResponses        ParticipantResponse[]
+}
+
+model ProcedureStep {
+  id             String       @id @default(uuid())
+  step           String
+  consentFormId  String
+  consentForm    ConsentForm @relation(fields: [consentFormId], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model ParticipantResponse {
+  id               String                @id @default(uuid())
+  consentFormId    String
+  consentForm      ConsentForm           @relation(fields: [consentFormId], references: [id])
+  participantEmail String
+  responseData     Json
+  consentState     ConsentState
+  createdAt        DateTime              @default(now())
+}
+
+enum ConsentState {
+  NOT_VIEWED
+  VIEWED
+  GRANTED
+}
+
+enum StudyOptions {
+  REPEATED_PARTICIPATION_ALLOWED
+  UNCOMFORTABLE_QUESTIONS
+}
+
+enum Compensation {
+  NONE
+  EUR1
+  EUR5
+  EUR10
+  EUR15
+  EUR20
+  HALF_CREDIT_POINT
+  ONE_CREDIT_POINT
+}
+
+enum CollectedData {
+  DEMOGRAPHICS
+  CONTACT_DATA
+  USER_INPUT
+  PHOTOS
+  VIDEOS
+  AUDIO
+  MOTION
+  EYE_MOVEMENT
+  PHYSIOLOGICAL_DATA
+  SCREEN_CAPTURE
+  BODY_METRICS
+  MANUAL_NOTES
+}
+
+enum Anonymization {
+  NO
+  PSEUDO
+  FULL
+}
+
+enum Publication {
+  FULL_DATASET
+  AGGREGATED_RESULTS
+}
