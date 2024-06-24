@@ -1,161 +1,191 @@
 'use client';
 
-import React from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import React, { useRef, useState } from 'react';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useMutation } from 'react-query';
+import {
+  ConsentForm,
+  ParticipantResponse,
+  SigningMethod,
+  ConsentState
+} from '@prisma/client';
 import { TextInput } from '@/components/consent-form/create/TextInput';
 import { Button } from '@/components/ui/button';
 import { Form, FormMessage } from '@/components/ui/form';
-import { useMutation } from 'react-query';
+import {
+  createConsentFormResponse,
+  updateConsentFormResponse
+} from '@/app/participant/actions';
+import SignatureCanvas from 'react-signature-canvas';
 import { useRouter } from 'next/navigation';
-import createConsentFormResponse from '@/app/participant/actions';
-
 
 const formSchema = z.object({
-  email: z.string().email('Invalid email address').min(1, 'Email is required'),
-  firstName: z.string().optional(),
-  lastName: z.string().optional()
+  consentGranted: z.boolean().refine((value) => value === true, {
+    message: 'You must agree to participate in the study'
+  })
 });
 
-type SignerFormInputs = z.infer<typeof formSchema>;
+type SignerViewInputs = z.infer<typeof formSchema>;
 
 interface SignerViewProps {
-  researchTitle: string;
-  supervisorName: string;
-  supervisorEmail: string;
-  consentFormId: string;
+  consentForm: ConsentForm;
+  participantResponse: ParticipantResponse;
 }
 
 const SignerView: React.FC<SignerViewProps> = ({
-  researchTitle,
-  supervisorName,
-  supervisorEmail,
-  consentFormId,
+  consentForm,
+  participantResponse
 }) => {
-  const form = useForm<SignerFormInputs>({
-    resolver: zodResolver(formSchema)
+  const signatureRef = useRef<SignatureCanvas>(null);
+  const [signatureError, setSignatureError] = useState<string | null>(null);
+
+  const form = useForm<SignerViewInputs>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      consentGranted: participantResponse.consentState === ConsentState.GRANTED
+    }
   });
 
-  const { control, handleSubmit, formState: { errors } } = form;
-  const router = useRouter();
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = form;
 
+  const navigateUser = () => {
+    // Extract the form URL from the consentForm object
+    const formURL = consentForm.formLink;
 
+    console.log('formURL', formURL);
 
-  const mutation = useMutation(createConsentFormResponse, {
-    onSuccess: (data) => {
-      // Redirect to the signing page on success
-      router.push(`${consentFormId}/sign/${data.id}`);
+    // Extract the participant ID from the participantResponse object
+    const participantID = participantResponse.id;
+
+    // Replace the placeholder ${participantID} in the form URL with the actual participant ID
+    const updatedFormURL = formURL.replace('${participantID}', participantID);
+
+    // Navigate the user to the updated form URL
+    window.location.href = updatedFormURL;
+  };
+
+  if (participantResponse.consentState === ConsentState.GRANTED) {
+    // navigate the user to the form URL
+    navigateUser();
+  }
+
+  const mutation = useMutation(updateConsentFormResponse, {
+    onSuccess: () => {
+        navigateUser();
     },
     onError: (error) => {
       console.error('Failed to submit form:', error);
     }
   });
 
-  const onSubmit: SubmitHandler<SignerFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<SignerViewInputs> = async (data) => {
+    if (
+      consentForm.signingMethod === SigningMethod.SIGNATURE &&
+      signatureRef.current?.isEmpty()
+    ) {
+      setSignatureError('Signature is required');
+      return;
+    }
+
+    let signatureBytes: Uint8Array | undefined;
+    if (
+      consentForm.signingMethod === SigningMethod.SIGNATURE &&
+      signatureRef.current
+    ) {
+      const signatureDataURL = signatureRef.current.toDataURL('image/png');
+      const base64Data = signatureDataURL.split(',')[1];
+      signatureBytes = Uint8Array.from(atob(base64Data), (c) =>
+        c.charCodeAt(0)
+      );
+    }
+
     mutation.mutate({
-      consentFormId,
-      participantEmail: data.email,
-      consentState: 'NOT_GRANTED',
-      firstName: data.firstName,
-      lastName: data.lastName,
+      ...participantResponse,
+      consentState: data.consentGranted
+        ? ConsentState.GRANTED
+        : ConsentState.NOT_GRANTED,
+      signature: signatureBytes
     });
   };
 
+  //   if (showThankYou) {
+  //     return <ThankYou alreadyConsented={participantResponse.consentState === ConsentState.GRANTED} />;
+  //   }
+
+  //   if (participantResponse.consentState === ConsentState.GRANTED) {
+  //     return <ThankYou alreadyConsented={true} />;
+  //   }
+
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-      <div className="flex items-center">
-        <h1 className="font-semibold text-lg md:text-2xl">What is iConsent?</h1>
-      </div>
-      <div>
-        <p>
-          Welcome to the iConsent platform, an open-source solution for managing
-          informed consent forms for research studies. You can find the code for
-          this platform on GitHub at the following{' '}
-          <a
-            href="https://github.com/abuzar-rasool/i-consent"
-            className="text-blue-500 underline"
-          >
-            repository
-          </a>
-          .
-        </p>
-      </div>
-      <div>
-        <h2 className="font-semibold text-lg">About the Research</h2>
-        <p>
-          The researcher for the study titled <strong>{researchTitle}</strong>{' '}
-          has chosen to use this platform for managing the consent process. If
-          you have any questions, please contact the research supervisor:
-        </p>
-        <ul>
-          <li><strong>Name:</strong> {supervisorName}</li>
-          <li><strong>Email:</strong> {supervisorEmail}</li>
-        </ul>
-      </div>
-      <div>
-        <h2 className="font-semibold text-lg">Important Information</h2>
-        <p>
-          This informed consent is not suitable for vulnerable groups (children,
-          disabled, prisoners) or studies where any harm can occur (medical
-          studies).
-        </p>
-      </div>
-      <div>
-        <h2 className="font-semibold text-lg">Platform Background</h2>
-        <p>
-          The iConsent platform is a continuation of the informed consent
-          generator project.<sup><a href="#citation1">1</a></sup>
-        </p>
-      </div>
-      <div>
-        <h2 className="font-semibold text-lg">Consent Process</h2>
-        <p>
-          To proceed with the consent process, please provide your email address
-          and, optionally, your first and last name. This information will be
-          visible to the researchers conducting the study and will be used
-          internally by the iConsent platform to track the consent status.
-        </p>
-      </div>
+    <div className="signer-view">
+      <h1>Informed Consent of Study Participation</h1>
+      <h2>{consentForm.title}</h2>
+
+      {/* ... (keep the rest of the informational content as before) ... */}
+
       <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
-          <TextInput control={control} name="email" label="Email (Required)" />
-          {errors.email && (
-            <FormMessage>{errors.email.message}</FormMessage>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <h3>7. Informed Consent and Agreement</h3>
+          <p>
+            I understand the explanation of the user study provided to me and I
+            voluntarily agree to participate in this user study. I have had all
+            my questions answered to my satisfaction and I am aware of risks and
+            benefits. I understand that this declaration of consent is revocable
+            at any time. I can obtain a copy of this consent form upon request.
+          </p>
+
+          {consentForm.signingMethod === SigningMethod.SIGNATURE && (
+            <div>
+              <label>Signature:</label>
+              <SignatureCanvas
+                ref={signatureRef}
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: 'signature-canvas'
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => signatureRef.current?.clear()}
+              >
+                Clear Signature
+              </Button>
+              {signatureError && <FormMessage>{signatureError}</FormMessage>}
+            </div>
           )}
-          <TextInput control={control} name="firstName" label="First Name (Optional)" />
-          <TextInput control={control} name="lastName" label="Last Name (Optional)" />
+
+          <div>
+            <label>
+              <input type="checkbox" {...form.register('consentGranted')} />I
+              have read and understood the information provided and agree to
+              participate in this study.
+            </label>
+            {errors.consentGranted && (
+              <FormMessage>{errors.consentGranted.message}</FormMessage>
+            )}
+          </div>
+
           {mutation.isError && (
             <FormMessage>{(mutation.error as Error).message}</FormMessage>
           )}
-          
-          <Button type="submit" className="mt-10 w-full" disabled={mutation.isLoading}>
-            {mutation.isLoading ? 'Submitting...' : 'Continue To Consent Form Signing'}
+
+          <Button
+            type="submit"
+            className="mt-10 w-full"
+            disabled={mutation.isLoading}
+          >
+            {mutation.isLoading ? 'Submitting...' : 'Submit Consent'}
           </Button>
         </form>
       </Form>
-
-      <footer className="mt-8 text-sm">
-        <p id="citation1">
-          1. Schwind, Valentin, Resch, Stefan, and Sehrt, Jessica. 2023. "The
-          HCI User Studies Toolkit: Supporting Study Designing and Planning for
-          Undergraduates and Novice Researchers in Human-Computer Interaction."
-          In{' '}
-          <em>
-            Extended Abstracts of the 2020 CHI Conference on Human Factors in
-            Computing Systems
-          </em>
-          . Association for Computing Machinery, New York, NY, USA. DOI:{' '}
-          <a
-            href="https://doi.org/10.1145/3544549.3585890"
-            className="text-blue-500 underline"
-          >
-            10.1145/3544549.3585890
-          </a>
-          .
-        </p>
-      </footer>
-    </main>
+    </div>
   );
 };
 

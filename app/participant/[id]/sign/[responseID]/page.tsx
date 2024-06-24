@@ -1,11 +1,15 @@
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import React from 'react';
+import { Prisma } from '@prisma/client';
+import { Sign } from 'crypto';
+import SignerView from '@/components/participant/SignerView';
 
 export const metadata = {
   title: 'Consent Form',
   description: 'View consent form details.'
 };
+
 
 
 
@@ -30,18 +34,16 @@ const SignerPage = async ({ params }: { params: { responseID: string } }) => {
 
 
   return (
-        // Just show some fields in text for now.
-    <div>
-        <h1>{consentForm.title}</h1>
-        <h2>{consentForm.principalInvestigator}</h2>
-        <h3>{consentForm.principalInvestigatorEmail}</h3>
-        <h4>{participantResponse.participantEmail}</h4>
-        <h5>{participantResponse.firstName ?? ''}</h5>
-        <h6>{participantResponse.consentState}</h6>
-    </div>
+    <SignerView
+        consentForm={consentForm}
+        participantResponse={participantResponse}
+    />
 
 
   );
 };
 
 export default SignerPage;
+
+
+

@@ -1,34 +1,64 @@
+// app/participant/actions.ts
 'use server';
 
-import { Prisma } from '@prisma/client';
+import { Prisma, ConsentState } from '@prisma/client';
 import prisma from '@/lib/prisma';
 
-export default async function createConsentFormResponse(
-  data: Prisma.ParticipantResponseUncheckedCreateInput
-)  {
-  try{
+interface ConsentFormResponseInput extends Omit<Prisma.ParticipantResponseUncheckedCreateInput, 'signature'> {
+  signature?: Uint8Array;
+}
+
+export async function createConsentFormResponse(data: ConsentFormResponseInput) {
     // Check if a participant response with the same email and consent form ID already exists
-  const existingResponse = await prisma.participantResponse.findFirst({
-    where: {
-      participantEmail: data.participantEmail,
-      consentFormId: data.consentFormId
+    const existingResponse = await prisma.participantResponse.findFirst({
+      where: {
+        participantEmail: data.participantEmail,
+        consentFormId: data.consentFormId
+      }
+    });
+
+    if (existingResponse) {
+      // update the for with new data
+      const updatedResponse = await prisma.participantResponse.update({
+        where: {
+          id: existingResponse.id,
+        },
+        data: {
+          ...data,
+          signature: undefined,
+        }
+      });
+      return existingResponse;
     }
-  });
 
-  if (existingResponse) {
-    throw new Error(
-      'You have already signed this consent form.'
-    );
-  }
+    // Create a new participant response
+    const newResponse = await prisma.participantResponse.create({
+      data: {
+        ...data,
+        signature: data.signature ? { create: { content: Buffer.from(data.signature) } } : undefined
+      }
+    });
 
-  // Create a new participant response
-  const newResponse = await prisma.participantResponse.create({
-    data
-  });
+    return newResponse;
+ 
+}
 
-  return newResponse;
-  } catch (error) {
-    throw new Error('Oops! Something went wrong. Please try again.');
-  }
+export async function updateConsentFormResponse(data: ConsentFormResponseInput) {
+    // Update the existing participant response
+    const updatedResponse = await prisma.participantResponse.update({
+      where: {
+        id: data.id,
+      },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        consentState: data.consentState,
+        signature: data.signature 
+          ? { upsert: { create: { content: Buffer.from(data.signature) }, update: { content: Buffer.from(data.signature) } } }
+          : undefined
+      }
+    });
+
+    return updatedResponse;
   
 }

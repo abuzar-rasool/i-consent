@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import React from 'react';
-import SignerView from '@/components/participant/SignerView';
+import ParticipantView from '@/components/participant/ParticipantView';
 
 
 
@@ -26,7 +26,7 @@ const ParticipantPage = async ({ params }: { params: { id: string } }) => {
   const consentForm = await getConsentForm(params.id);
 
   return (
-    <SignerView 
+    <ParticipantView 
       researchTitle={consentForm.title} 
       supervisorName={consentForm.principalInvestigator} 
       supervisorEmail={consentForm.principalInvestigatorEmail} 

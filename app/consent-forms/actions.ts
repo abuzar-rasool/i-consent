@@ -9,9 +9,9 @@ export async function createConsentForm(data: { name: string }) {
     throw new Error('Name is required');
   }
 
-  const consentForm = await prisma.consentForm.create({
-    data: { name: data.name },
-  });
+  // const consentForm = await prisma.consentForm.create({
+  //   data: { name: data.name },
+  // });
 
-  return consentForm;
+  // return consentForm;
 }
