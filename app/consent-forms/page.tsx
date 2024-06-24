@@ -49,10 +49,9 @@ const formSchema = z.object({
   goal: stringValidation('Goal'),
   studyDateRange: z
     .object({
-      from: z.date().nullable(),
-      to: z.date().nullable()
-    })
-    .nullable(),
+      from: z.date(),
+      to: z.date()
+    }),
   duration: numberValidation('Duration'),
   durationUnit: stringValidation('Duration unit'),
   participants: numberValidation('Number of participants'),
@@ -203,7 +202,10 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Select {...field}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Please select" />
                     </SelectTrigger>
@@ -230,7 +232,10 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Select {...field}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Please select" />
                     </SelectTrigger>
@@ -312,7 +317,15 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Input {...field} type="number" min="1" />
+                  <Input
+                    {...field}
+                    type="number"
+                    min="1"
+                    value={field.value || ''}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value, 10))
+                    }
+                  />
                 </FormControl>
               )}
             />
@@ -321,7 +334,10 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Select {...field}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Please select" />
                     </SelectTrigger>
@@ -346,7 +362,15 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Input {...field} type="number" min="1" />
+                  <Input
+                    {...field}
+                    type="number"
+                    min="1"
+                    value={field.value || ''}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value, 10))
+                    }
+                  />
                 </FormControl>
               )}
             />
@@ -402,7 +426,10 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Select {...field}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Please select" />
                     </SelectTrigger>
@@ -539,7 +566,10 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Select {...field}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Please select" />
                     </SelectTrigger>
@@ -568,7 +598,10 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Select {...field}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Please select" />
                     </SelectTrigger>
@@ -596,7 +629,10 @@ export default function ConsentFormPage() {
               control={control}
               render={({ field }) => (
                 <FormControl>
-                  <Select {...field}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Please select" />
                     </SelectTrigger>
@@ -628,9 +664,7 @@ export default function ConsentFormPage() {
               )}
             />
             {errors.principalInvestigator && (
-              <FormMessage>
-                {errors.principalInvestigator.message}
-              </FormMessage>
+              <FormMessage>{errors.principalInvestigator.message}</FormMessage>
             )}
           </FormItem>
           <FormItem>
