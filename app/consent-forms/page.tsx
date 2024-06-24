@@ -28,6 +28,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { DatePickerWithRange } from '@/components/data-range-picker';
+import prisma from '@/lib/prisma';
+import { sign } from 'crypto';
+
 
 const stringValidation = (fieldName: string) =>
   z
@@ -99,7 +102,14 @@ const formSchema = z.object({
   researcherNames: z.string().optional(),
   researcherEmails: z.string().optional(),
   funding: z.string().optional(),
-  ethicalCommittee: z.string().optional()
+  ethicalCommittee: z.string().optional(),
+  signingMethod: z.object({
+    checkbox: z.boolean({message: 'Signing method is required'}).default(false),
+    signature: z.boolean({message: 'Signing method is required'}).default(false),
+  }).refine(
+    (value) => value.checkbox || value.signature,
+    { message: 'Signing method is required' }
+  ),
 });
 
 type ConsentFormInputs = z.infer<typeof formSchema>;
@@ -740,6 +750,58 @@ export default function ConsentFormPage() {
                 </FormControl>
               )}
             />
+          </FormItem>
+          <FormItem>
+            <FormLabel>Consent Method</FormLabel>
+            <Controller
+              name="signingMethod"
+              control={control}
+              render={({ field }) => (
+                <>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="signingMethod.checkbox"
+                      checked={field.value?.checkbox}
+                      onCheckedChange={() =>
+                        field.onChange({
+                          ...field.value,
+                          checkbox: !field.value?.checkbox,
+                          signature: false
+                        })
+                      }
+                    />
+                    <label
+                      htmlFor="signingMethod.checkbox"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Checkbox
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="signingMethod.signature"
+                      checked={field.value?.signature}
+                      onCheckedChange={() =>
+                        field.onChange({
+                          ...field.value,
+                          signature: !field.value?.signature,
+                          checkbox: false
+                        })
+                      }
+                    />
+                    <label
+                      htmlFor="signingMethod.signature"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Signature
+                    </label>
+                  </div>
+                </>
+              )}
+            />
+            {errors.signingMethod && (
+              <FormMessage>{errors.signingMethod.message}</FormMessage>
+            )}
           </FormItem>
           <Button type="submit" className="mt-10 w-full">
             Create Consent Form
