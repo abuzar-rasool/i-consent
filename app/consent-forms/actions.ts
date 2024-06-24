@@ -1,17 +1,17 @@
-
 'use server';
 
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
-export async function createConsentForm(data: { name: string }) {
+export async function createConsentForm(data: Prisma.ConsentFormCreateInput) {
 
-  if (!data.name) {
-    throw new Error('Name is required');
+  console.log(data);
+  try {
+    const consentForm = await prisma.consentForm.create({
+      data: data,
+    });
+    return consentForm;
+  } catch (error) {
+    console.error('Failed to create consent form:', error);
   }
-
-  // const consentForm = await prisma.consentForm.create({
-  //   data: { name: data.name },
-  // });
-
-  // return consentForm;
 }

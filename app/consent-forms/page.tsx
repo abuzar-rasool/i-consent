@@ -6,7 +6,7 @@ import {
   SubmitHandler,
   useFieldArray
 } from 'react-hook-form';
-import { useState } from 'react';
+import { use, useState } from 'react';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -30,7 +30,10 @@ import { Button } from '@/components/ui/button';
 import { DatePickerWithRange } from '@/components/data-range-picker';
 import prisma from '@/lib/prisma';
 import { sign } from 'crypto';
-
+import { createConsentForm } from './actions';
+import { $Enums, Anonymization, CollectedData, Prisma } from '@prisma/client';
+import { useMutation } from 'react-query';
+import { useRouter } from 'next/navigation';
 
 const stringValidation = (fieldName: string) =>
   z
@@ -46,14 +49,16 @@ const formSchema = z.object({
   institution: stringValidation('Institution'),
   otherInstitution: z.string().optional(),
   researchType: stringValidation('Research type'),
-  language: stringValidation('Language'),
   title: stringValidation('Title'),
   purpose: stringValidation('Purpose'),
   goal: stringValidation('Goal'),
   studyDateRange: z
     .object({
-      from: z.date(),
-      to: z.date()
+      from: z.date({message: 'Study start date is required'}),
+      to: z.date({message: 'Study end date is required'})
+    }).default({
+      from: new Date(),
+      to: new Date()
     }),
   duration: numberValidation('Duration'),
   durationUnit: stringValidation('Duration unit'),
@@ -70,7 +75,8 @@ const formSchema = z.object({
         })
     )
     .min(1, { message: 'At least one procedure step is required' })
-    .max(4, { message: 'No more than 4 procedure steps are allowed' }),
+    .max(4, { message: 'No more than 4 procedure steps are allowed' })
+    .default(['step 1']),
   dataCollected: z
     .object({
       demographics: z.boolean().default(false),
@@ -114,6 +120,78 @@ const formSchema = z.object({
 
 type ConsentFormInputs = z.infer<typeof formSchema>;
 
+const transformInput = (input: any): Prisma.ConsentFormUncheckedCreateWithoutParticipantResponsesInput => {
+
+  const collectedDataKeys: { [key: string]: $Enums.CollectedData } = {
+    demographics: $Enums.CollectedData.DEMOGRAPHICS,
+    contactData: $Enums.CollectedData.CONTACT_DATA,
+    userInput: $Enums.CollectedData.USER_INPUT,
+  };
+
+  const userCollectedData: $Enums.CollectedData[] = [];
+  for (const key in input.dataCollected) {
+    if (input.dataCollected[key] === true) {
+      userCollectedData.push(collectedDataKeys[key]);
+    }
+  }
+
+  const signingMethodKeys: { [key: string]: $Enums.SigningMethod } = {
+    checkbox: $Enums.SigningMethod.CHECK_BOX,
+    signature: $Enums.SigningMethod.SIGNATURE,
+  };
+
+  const anonymizationKeys: { [key: string]: $Enums.Anonymization } = {
+    no: $Enums.Anonymization.NO,
+    pseudo: $Enums.Anonymization.PSEUDO,
+    full: $Enums.Anonymization.FULL,
+  };
+
+  const publicationKeys: { [key: string]: $Enums.Publication } = {
+    full_dataset: $Enums.Publication.FULL_DATASET,
+    aggregated: $Enums.Publication.AGGREGATED_RESULTS,
+  };
+
+  const compensationKeys: { [key: string]: $Enums.Compensation } = {
+    none: $Enums.Compensation.NONE,
+    EUR1: $Enums.Compensation.EUR1,
+    EUR5: $Enums.Compensation.EUR5,
+    EUR10: $Enums.Compensation.EUR10,
+    EUR15: $Enums.Compensation.EUR15,
+    EUR20: $Enums.Compensation.EUR20,
+    halfcredit: $Enums.Compensation.HALF_CREDIT_POINT,
+    onecredit: $Enums.Compensation.ONE_CREDIT_POINT,
+  };
+
+  const output = {
+    institution: input.institution,
+    researchType: input.researchType,
+    title: input.title,
+    purpose: input.purpose,
+    goal: input.goal,
+    startDate: input.studyDateRange.from,
+    endDate: input.studyDateRange.to,
+    duration: input.duration,
+    durationUnit: input.durationUnit,
+    participants: input.participants,
+    compensation: compensationKeys[input.compensation],
+    procedureSteps: input.procedure,
+    collectedData: userCollectedData,
+    anonymization: anonymizationKeys[input.anonymization] ?? Anonymization.NO,
+    publication: publicationKeys[input.dataPublication],
+    principalInvestigator: input.principalInvestigator,
+    principalInvestigatorEmail: input.principalInvestigatorEmail,
+    signingMethod: input.signingMethod.checkbox ? signingMethodKeys.checkbox : signingMethodKeys.signature,
+    researcherNames: input.researcherNames ?? null,
+    researcherEmails: input.researcherEmails ?? null,
+    funding: input.funding ?? null,
+    ethicalCommittee: input.ethicalCommittee ?? null,
+  };
+
+  console.log('Transformed data:', output);
+  
+  return output;
+};
+
 export default function ConsentFormPage() {
   const form = useForm<ConsentFormInputs>({
     resolver: zodResolver(formSchema)
@@ -131,9 +209,25 @@ export default function ConsentFormPage() {
     name: 'procedure' as never
   });
 
+  const router = useRouter();
+
+  const mutation = useMutation(createConsentForm, {
+    onSuccess: (data) => {
+      // Redirect to the signing page on success
+      router.push('/');
+    },
+    onError: (error) => {
+      console.error('Failed to create form:', error);
+    }
+  });
+
   const [showOtherInstitution, setShowOtherInstitution] = useState(false);
-  const onSubmit: SubmitHandler<ConsentFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<ConsentFormInputs> = async (data) => {
+    const transformedData = transformInput(data);
+
     console.log(data);
+    mutation.mutate(transformedData);
+
   };
 
   console.log(errors);
@@ -236,32 +330,6 @@ export default function ConsentFormPage() {
             )}
           </FormItem>
           <FormItem>
-            <FormLabel>Informed Consent Language</FormLabel>
-            <Controller
-              name="language"
-              control={control}
-              render={({ field }) => (
-                <FormControl>
-                  <Select
-                    value={field.value}
-                    onValueChange={(value) => field.onChange(value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Please select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-              )}
-            />
-            {errors.language && (
-              <FormMessage>{errors.language.message}</FormMessage>
-            )}
-          </FormItem>
-          <FormItem>
             <FormLabel>Title of your Research</FormLabel>
             <Controller
               name="title"
@@ -318,6 +386,12 @@ export default function ConsentFormPage() {
             />
             {errors.studyDateRange && (
               <FormMessage>{errors.studyDateRange.message}</FormMessage>
+            )}
+            {errors.studyDateRange?.from && (
+              <FormMessage>{errors.studyDateRange.from.message}</FormMessage>
+            )}
+            {errors.studyDateRange?.to && (
+              <FormMessage>{errors.studyDateRange.to.message}</FormMessage>
             )}
           </FormItem>
           <FormItem>
@@ -445,11 +519,11 @@ export default function ConsentFormPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="1EUR">1 EUR</SelectItem>
-                      <SelectItem value="5EUR">5 EUR</SelectItem>
-                      <SelectItem value="10EUR">10 EUR</SelectItem>
-                      <SelectItem value="15EUR">15 EUR</SelectItem>
-                      <SelectItem value="20EUR">20 EUR</SelectItem>
+                      <SelectItem value="EUR1">1 EUR</SelectItem>
+                      <SelectItem value="EUR5">5 EUR</SelectItem>
+                      <SelectItem value="EUR10">10 EUR</SelectItem>
+                      <SelectItem value="EUR15">15 EUR</SelectItem>
+                      <SelectItem value="EUR20">20 EUR</SelectItem>
                       <SelectItem value="halfcredit">½ credit point</SelectItem>
                       <SelectItem value="onecredit">1 credit point</SelectItem>
                     </SelectContent>
@@ -647,7 +721,7 @@ export default function ConsentFormPage() {
                       <SelectValue placeholder="Please select" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="full">
+                      <SelectItem value="full_dataset">
                         Including the raw data set
                       </SelectItem>
                       <SelectItem value="aggregated">
