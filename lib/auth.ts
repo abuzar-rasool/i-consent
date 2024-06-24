@@ -13,6 +13,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // It is a comma separated list of GitHub usernames
       const authorisedUsers = process.env.AUTHORISED_USERS!.split(',');
 
+
       const authUserName = profile?.login as string ?? '' ;
 
       console.log('authorisedUsers', authorisedUsers);
