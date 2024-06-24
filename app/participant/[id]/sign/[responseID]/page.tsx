@@ -30,9 +30,6 @@ const SignerPage = async ({ params }: { params: { responseID: string } }) => {
         notFound();
     }
 
-
-
-
   return (
     <SignerView
         consentForm={consentForm}

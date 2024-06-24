@@ -28,7 +28,7 @@ export async function createConsentFormResponse(data: ConsentFormResponseInput) 
           signature: undefined,
         }
       });
-      return existingResponse;
+      return updatedResponse;
     }
 
     // Create a new participant response
@@ -50,8 +50,6 @@ export async function updateConsentFormResponse(data: ConsentFormResponseInput) 
         id: data.id,
       },
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
         consentState: data.consentState,
         signature: data.signature 
           ? { upsert: { create: { content: Buffer.from(data.signature) }, update: { content: Buffer.from(data.signature) } } }

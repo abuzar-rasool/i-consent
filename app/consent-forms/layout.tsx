@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/react';
 import { Logo, ConsentFormIcon, UsersIcon } from '@/components/icons';
 import { NavItem } from '../nav-item';
-import { User } from '../user';
+import { User } from '../../components/consent-form/create/user';
 
 export const metadata = {
   title: 'iConsent Admin Dashboard',
