@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import React from 'react';
+import SignerView from '@/components/participant/SignerView';
+
+
 
 export const metadata = {
   title: 'Consent Form',
@@ -19,15 +22,17 @@ async function getConsentForm(id: string) {
   return consentForm;
 }
 
-const SignerView = async ({ params }: { params: { id: string } }) => {
+const ParticipantPage = async ({ params }: { params: { id: string } }) => {
   const consentForm = await getConsentForm(params.id);
 
   return (
-    <div>
-      <h1>In order to continue signing with the consent form you must provide you email.</h1>
-      <p>{consentForm.title}</p>
-    </div>
+    <SignerView 
+      researchTitle={consentForm.title} 
+      supervisorName={consentForm.principalInvestigator} 
+      supervisorEmail={consentForm.principalInvestigatorEmail} 
+      consentFormId={consentForm.id}
+    />
   );
 };
 
-export default SignerView;
+export default ParticipantPage;
