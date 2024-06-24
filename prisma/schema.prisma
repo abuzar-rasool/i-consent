@@ -44,7 +44,7 @@ model ParticipantResponse {
   id               String                @id @default(uuid())
   consentFormId    String
   consentForm      ConsentForm           @relation(fields: [consentFormId], references: [id])
-  participantEmail String
+  participantEmail String               
   consentState     ConsentState
   firstName        String?
   lastName         String?
