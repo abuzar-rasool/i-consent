@@ -45,7 +45,7 @@ const SignerView: React.FC<SignerViewProps> = ({
   const mutation = useMutation(createConsentFormResponse, {
     onSuccess: (data) => {
       // Redirect to the signing page on success
-      router.push(`/${consentFormId}/sign/${data.id}`);
+      router.push(`${consentFormId}/sign/${data.id}`);
     },
     onError: (error) => {
       console.error('Failed to submit form:', error);

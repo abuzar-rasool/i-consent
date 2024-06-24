@@ -6,7 +6,8 @@ import prisma from '@/lib/prisma';
 export default async function createConsentFormResponse(
   data: Prisma.ParticipantResponseUncheckedCreateInput
 )  {
-  // Check if a participant response with the same email and consent form ID already exists
+  try{
+    // Check if a participant response with the same email and consent form ID already exists
   const existingResponse = await prisma.participantResponse.findFirst({
     where: {
       participantEmail: data.participantEmail,
@@ -16,7 +17,7 @@ export default async function createConsentFormResponse(
 
   if (existingResponse) {
     throw new Error(
-      'A response with the same email and consent form ID already exists.'
+      'You have already signed this consent form.'
     );
   }
 
@@ -26,4 +27,8 @@ export default async function createConsentFormResponse(
   });
 
   return newResponse;
+  } catch (error) {
+    throw new Error('Oops! Something went wrong. Please try again.');
+  }
+  
 }

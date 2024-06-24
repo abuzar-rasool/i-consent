@@ -9,9 +9,9 @@ export const metadata = {
 
 
 
-const SignerPage = async ({ params }: { params: { id: string } }) => {
+const SignerPage = async ({ params }: { params: { responseID: string } }) => {
     const participantResponse = await prisma.participantResponse.findUnique({
-        where: { id: params.id },
+        where: { id: params.responseID },
     });
 
     if (!participantResponse) {
