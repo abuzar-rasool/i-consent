@@ -11,6 +11,7 @@ import {
 import CheckBoxForm from './CheckBoxForm';
 import { updateConsentFormResponse } from '@/app/participant/actions';
 import SignatureForm from './SignatureForm';
+import ConsentFormContent from './ConsentFormData';
 
 interface ConsentSigningViewProps {
   consentForm: ConsentForm;
@@ -60,22 +61,17 @@ const ConsentSigningView: React.FC<ConsentSigningViewProps> = ({
 
   return (
     <div className="signer-view">
-      <h1>Informed Consent of Study Participation</h1>
-      <h2>{consentForm.title}</h2>
-      <h3>7. Informed Consent and Agreement</h3>
-      <p>
-        I understand the explanation of the user study provided to me and I
-        voluntarily agree to participate in this user study. I have had all my
-        questions answered to my satisfaction and I am aware of risks and
-        benefits. I understand that this declaration of consent is revocable at
-        any time. I can obtain a copy of this consent form upon request.
-      </p>
-
+      <ConsentFormContent 
+        consentForm={consentForm} 
+        participantResponse={participantResponse}
+      />
+      <div className="max-w-4xl mx-auto p-8">
       {consentForm.signingMethod === SigningMethod.SIGNATURE ? (
         <SignatureForm onSubmit={handleSignatureSubmit} />
       ) : (
         <CheckBoxForm onSubmit={handleCheckBoxSubmit} />
       )}
+      </div>
     </div>
   );
 };

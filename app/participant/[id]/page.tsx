@@ -31,6 +31,7 @@ const ParticipantPage = async ({ params }: { params: { id: string } }) => {
       supervisorName={consentForm.principalInvestigator} 
       supervisorEmail={consentForm.principalInvestigatorEmail} 
       consentFormId={consentForm.id}
+      consentFormStudyCode={consentForm.studyCode ?? ''}
     />
   );
 };

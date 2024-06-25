@@ -8,14 +8,18 @@ interface ConsentFormResponseInput extends Omit<Prisma.ParticipantResponseUnchec
   signature?: Uint8Array;
 }
 
-export async function createConsentFormResponse(data: ConsentFormResponseInput) {
-    // Check if a participant response with the same email and consent form ID already exists
+export async function createConsentFormResponse(data : {responseInput: ConsentFormResponseInput, studyCode: string}) {
+    // Check all response for the participant with the given email and consent form's study code
     const existingResponse = await prisma.participantResponse.findFirst({
       where: {
-        participantEmail: data.participantEmail,
-        consentFormId: data.consentFormId
+        participantEmail: data.responseInput.participantEmail,
+        consentForm: {
+          studyCode: data.studyCode
+        }
       }
     });
+
+    // 
 
     if (existingResponse) {
       // update the for with new data
@@ -24,8 +28,8 @@ export async function createConsentFormResponse(data: ConsentFormResponseInput) 
           id: existingResponse.id,
         },
         data: {
-          ...data,
-          signature: undefined,
+          firstName: data.responseInput.firstName,
+          lastName: data.responseInput.lastName,
         }
       });
       return updatedResponse;
@@ -34,8 +38,8 @@ export async function createConsentFormResponse(data: ConsentFormResponseInput) 
     // Create a new participant response
     const newResponse = await prisma.participantResponse.create({
       data: {
-        ...data,
-        signature: data.signature ? { create: { content: Buffer.from(data.signature) } } : undefined
+        ...data.responseInput,
+        signature: data.responseInput.signature ? { create: { content: Buffer.from(data.responseInput.signature) } } : undefined
       }
     });
 

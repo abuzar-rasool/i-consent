@@ -56,6 +56,8 @@ const SignatureForm: React.FC<SignatureFormProps> = ({ onSubmit }) => {
               signatureRef.current?.clear();
               setValue('signature', '', { shouldValidate: true });
             }}
+
+            className='mt-4'
           >
             Clear Signature
           </Button>

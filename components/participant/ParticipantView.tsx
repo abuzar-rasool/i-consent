@@ -24,13 +24,15 @@ interface ParticipantViewProps {
   supervisorName: string;
   supervisorEmail: string;
   consentFormId: string;
+  consentFormStudyCode: string;
 }
 
 const ParticipantView: React.FC<ParticipantViewProps> = ({
   researchTitle,
   supervisorName,
   supervisorEmail,
-  consentFormId
+  consentFormId,
+  consentFormStudyCode
 }) => {
   const form = useForm<ParticipantViewInputs>({
     resolver: zodResolver(formSchema)
@@ -55,16 +57,19 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({
 
   const onSubmit: SubmitHandler<ParticipantViewInputs> = async (data) => {
     mutation.mutate({
-      consentFormId,
-      participantEmail: data.email,
-      consentState: 'NOT_GRANTED',
-      firstName: data.firstName,
-      lastName: data.lastName
+      responseInput: {
+        consentFormId,
+        participantEmail: data.email,
+        consentState: 'NOT_GRANTED',
+        firstName: data.firstName,
+        lastName: data.lastName
+      },
+      studyCode: consentFormStudyCode
     });
   };
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+    <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6 max-w-4xl mx-auto">
       <div className="flex items-center">
         <h1 className="font-semibold text-lg md:text-2xl">What is iConsent?</h1>
       </div>
@@ -129,11 +134,19 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
           <TextInput control={control} name="email" label="Email (Required)" />
           {errors.email && <FormMessage>{errors.email.message}</FormMessage>}
-          <TextInput control={control} name="firstName" label="First Name (Required)" />
+          <TextInput
+            control={control}
+            name="firstName"
+            label="First Name (Required)"
+          />
           {errors.firstName && (
             <FormMessage>{errors.firstName.message}</FormMessage>
           )}
-          <TextInput control={control} name="lastName" label="Last Name (Required)" />
+          <TextInput
+            control={control}
+            name="lastName"
+            label="Last Name (Required)"
+          />
           {errors.lastName && (
             <FormMessage>{errors.lastName.message}</FormMessage>
           )}
