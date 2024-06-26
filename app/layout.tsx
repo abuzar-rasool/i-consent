@@ -1,6 +1,6 @@
 import ReactQueryProvider from '@/lib/react-query';
 import './globals.css';
-import { getSession } from "next-auth/react"
+import { SessionProvider } from "next-auth/react"
 
 
 export const metadata = {
@@ -18,7 +18,9 @@ export default function RootLayout({
     <ReactQueryProvider>
     <html lang="en" className="h-full bg-gray-50">
       <body>
+        <SessionProvider>
         {children}
+        </SessionProvider>
       </body>
     </html>
     </ReactQueryProvider>
