@@ -116,6 +116,7 @@ const formSchema = z.object({
     (value) => value.checkbox || value.signature,
     { message: 'Signing method is required' }
   ),
+  studyCode: stringValidation('Study code is required')
 });
 
 type ConsentFormInputs = z.infer<typeof formSchema>;
@@ -185,6 +186,7 @@ const transformInput = (input: any): Prisma.ConsentFormUncheckedCreateWithoutPar
     researcherEmails: input.researcherEmails ?? null,
     funding: input.funding ?? null,
     ethicalCommittee: input.ethicalCommittee ?? null,
+    studyCode: input.studyCode ?? null,
   };
 
   console.log('Transformed data:', output);
@@ -875,6 +877,21 @@ export default function CreateConsentFormPage() {
             />
             {errors.signingMethod && (
               <FormMessage>{errors.signingMethod.message}</FormMessage>
+            )}
+          </FormItem>
+          <FormItem>
+            <FormLabel>Study code</FormLabel>
+            <Controller
+              name="studyCode"
+              control={control}
+              render={({ field }) => (
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+              )}
+            />
+            {errors.studyCode && (
+              <FormMessage>{errors.studyCode.message}</FormMessage>
             )}
           </FormItem>
           <Button type="submit" className="mt-10 w-full">
