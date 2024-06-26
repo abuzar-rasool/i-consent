@@ -1,16 +1,20 @@
-import Link from 'next/link';
+import ReactQueryProvider from '@/lib/react-query';
+import './../globals.css';
 import { Analytics } from '@vercel/analytics/react';
+import Link from 'next/link';
 import { Logo, ConsentFormIcon, UsersIcon } from '@/components/icons';
 import { NavItem } from '../nav-item';
 import { User } from '../../components/consent-form/create/user';
+import { getSession } from 'next-auth/react';
 
 export const metadata = {
-  title: 'iConsent Admin Dashboard',
-  description: 'A user admin dashboard for managing informed consent forms.',
+  title: 'Next.js App Router + NextAuth + Tailwind CSS',
+  description:
+    'A user admin dashboard configured with Next.js, Postgres, NextAuth, Tailwind CSS, TypeScript, and Prettier.'
 };
 
-export default function AdminRootLayout({
-  children,
+export default function RootLayout({
+  children
 }: {
   children: React.ReactNode;
 }) {
@@ -26,11 +30,7 @@ export default function AdminRootLayout({
           </div>
           <div className="flex-1 overflow-auto py-2">
             <nav className="grid items-start px-4 text-sm font-medium">
-              <NavItem href="/admin/users">
-                <UsersIcon className="h-4 w-4" />
-                Users
-              </NavItem>
-              <NavItem href="/admin/consent-forms">
+              <NavItem href="/consent-forms">
                 <ConsentFormIcon className="h-4 w-4" />
                 Consent Forms
               </NavItem>
@@ -40,15 +40,16 @@ export default function AdminRootLayout({
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b bg-gray-100/40 px-6 dark:bg-gray-800/40 justify-between lg:justify-end">
-          <Link className="flex items-center gap-2 font-semibold lg:hidden" href="/">
+          <Link
+            className="flex items-center gap-2 font-semibold lg:hidden"
+            href="/"
+          >
             <Logo />
             <span>iConsent</span>
           </Link>
           <User />
         </header>
-        <main className="flex flex-col flex-1">
-          {children}
-        </main>
+        <main className="flex flex-col flex-1">{children}</main>
       </div>
       <Analytics />
     </div>

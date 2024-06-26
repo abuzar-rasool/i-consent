@@ -1,7 +1,6 @@
-
 import ReactQueryProvider from '@/lib/react-query';
 import './globals.css';
-import { Analytics } from '@vercel/analytics/react';
+import { getSession } from "next-auth/react"
 
 
 export const metadata = {
@@ -15,13 +14,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-
   return (
     <ReactQueryProvider>
     <html lang="en" className="h-full bg-gray-50">
       <body>
         {children}
-        <Analytics />
       </body>
     </html>
     </ReactQueryProvider>
