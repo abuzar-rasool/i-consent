@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation } from 'react-query';
 import {
   ConsentForm,
@@ -22,22 +22,17 @@ const ConsentSigningView: React.FC<ConsentSigningViewProps> = ({
   consentForm,
   participantResponse
 }) => {
-  const navigateUser = () => {
-    const formURL = consentForm.formLink;
-    const participantID = participantResponse.id;
-    const updatedFormURL = formURL.replace('${participantID}', participantID);
-    window.location.href = updatedFormURL;
-  };
+  const [showSigningForm, setShowSigningForm] = useState(participantResponse.consentState === ConsentState.NOT_GRANTED);
 
   useEffect(() => {
     if (participantResponse.consentState === ConsentState.GRANTED) {
-      navigateUser();
+      setShowSigningForm(false);
     }
   }, [participantResponse]);
 
   const mutation = useMutation(updateConsentFormResponse, {
     onSuccess: () => {
-      navigateUser();
+      setShowSigningForm(false);
     },
     onError: (error) => {
       console.error('Failed to submit form:', error);
@@ -55,23 +50,37 @@ const ConsentSigningView: React.FC<ConsentSigningViewProps> = ({
   const handleCheckBoxSubmit = (data: { consentGranted: boolean }) => {
     mutation.mutate({
       ...participantResponse,
-      consentState: ConsentState.GRANTED
+      consentState: data.consentGranted ? ConsentState.GRANTED : ConsentState.NOT_GRANTED
     });
   };
 
+  const formURL = consentForm.formLink.replace('${participantID}', participantResponse.id);
+
   return (
     <div className="signer-view">
-      <ConsentFormContent 
-        consentForm={consentForm} 
-        participantResponse={participantResponse}
-      />
-      <div className="max-w-4xl mx-auto p-8">
-      {consentForm.signingMethod === SigningMethod.SIGNATURE ? (
-        <SignatureForm onSubmit={handleSignatureSubmit} />
+      {showSigningForm ? (
+        <>
+          <ConsentFormContent 
+            consentForm={consentForm} 
+            participantResponse={participantResponse}
+          />
+          <div className="max-w-4xl mx-auto p-8">
+            {consentForm.signingMethod === SigningMethod.SIGNATURE ? (
+              <SignatureForm onSubmit={handleSignatureSubmit} />
+            ) : (
+              <CheckBoxForm onSubmit={handleCheckBoxSubmit} />
+            )}
+          </div>
+        </>
       ) : (
-        <CheckBoxForm onSubmit={handleCheckBoxSubmit} />
+        <iframe 
+          src={formURL} 
+          title="Consent Form"
+          className="w-full h-screen"
+          style={{ maxHeight: '100vh' }}
+          
+        />
       )}
-      </div>
     </div>
   );
 };
