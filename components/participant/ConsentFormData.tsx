@@ -149,7 +149,7 @@ const ConsentFormContent: React.FC<ConsentFormDataProps> = ({
         participation at any time without giving a reason. However, we reserve
         the right to exclude you from the study (e.g., with invalid trials or if
         continuing the study could have a negative impact on your well-being or
-        the equipment). You will also receive the compensation offered if you
+        the equipment). You will not receive the compensation offered if you
         discontinue study participation.
       </p>
 
