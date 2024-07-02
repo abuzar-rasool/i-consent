@@ -8,9 +8,9 @@ import { User } from '../../components/consent-form/create/user';
 import { getSession } from 'next-auth/react';
 
 export const metadata = {
-  title: 'Next.js App Router + NextAuth + Tailwind CSS',
+  title: 'iConsent Admin Dashboard',
   description:
-    'A user admin dashboard configured with Next.js, Postgres, NextAuth, Tailwind CSS, TypeScript, and Prettier.'
+    'iConsent Admin Dashboard is a simple, easy-to-use dashboard for managing your iConsent account.'
 };
 
 export default function RootLayout({
